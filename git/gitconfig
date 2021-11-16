@@ -21,3 +21,5 @@
 	rebase = false
 [core]
 	excludesfile = /Users/mikeg/.gitignore
+[pager]
+	branch = false
