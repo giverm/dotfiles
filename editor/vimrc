@@ -78,7 +78,7 @@ imap jj <Esc>
 vmap nn <Esc>
 
 " Clear search highlighting
-map <C-m> :noh<CR>
+map <Leader> :noh<CR>
 
 " Better split swapping
 nnoremap <C-J> <C-W><C-J>
@@ -209,6 +209,7 @@ fun! SetupVAM()
   VAMActivate vim-ruby
   VAMActivate github:tpope/vim-rails
   VAMActivate github:tpope/vim-bundler
+  VAMActivate github:pangloss/vim-javascript
 
   "VAMActivate ctrlp
 
@@ -218,11 +219,9 @@ fun! SetupVAM()
 
   " traversal
   VAMActivate github:scrooloose/nerdtree
-  VAMActivate github:mileszs/ack.vim
-  VAMActivate github:christoomey/vim-tmux-navigator
 
   " git
-  VAMActivate fugitive
+  VAMActivate github:tpope/vim-fugitive
   VAMActivate github:tpope/vim-rhubarb
   VAMActivate github:airblade/vim-gitgutter
 
@@ -232,6 +231,7 @@ fun! SetupVAM()
   VAMActivate github:joker1007/vim-ruby-heredoc-syntax 
   VAMActivate github:dracula/vim
   VAMActivate github:morhetz/gruvbox
+  VAMActivate github:cocopon/iceberg.vim
 
   " general editing
   VAMActivate github:Raimondi/delimitMate
@@ -247,9 +247,12 @@ fun! SetupVAM()
   VAMActivate github:tpope/vim-endwise
   VAMActivate github:dense-analysis/ale
   VAMActivate github:aserebryakov/vim-todo-lists
+
+  VAMActivate github:MaxMEllon/vim-jsx-pretty
+
 endfun
 
 call SetupVAM()
 
 " colorscheme dracula
-autocmd vimenter * ++nested colorscheme gruvbox
+autocmd vimenter * ++nested colorscheme iceberg
