@@ -2,7 +2,7 @@
 	ui = true
 [user]
 	name = Michael Giver
-	email = mikeg@pvep.com
+	email = mikeg@gmail.com
 [alias]
         co = checkout
         c = commit -m
@@ -25,6 +25,6 @@
 [pull]
 	rebase = false
 [core]
-	excludesfile = /Users/mikeg/.gitignore
+	excludesfile = /Users/giverm/.gitignore
 [pager]
 	branch = false
