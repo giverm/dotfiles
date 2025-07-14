@@ -2,7 +2,7 @@
 	ui = true
 [user]
 	name = Michael Giver
-	email = mikeg@gmail.com
+	email = mike.giver@gmail.com
 [alias]
         co = checkout
         c = commit -m
