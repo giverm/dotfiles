@@ -44,7 +44,14 @@ vim.keymap.set('v', 'nn', '<ESC>')
 vim.keymap.set('n', '<leader>', ':noh<CR>')
 
 -- Remove trailing whitespace
-vim.api.nvim_create_autocmd("BufWritePre", { command = [[%s/\s\+$//e]] })
+vim.api.nvim_create_autocmd("BufWritePre", {
+    pattern = "*",
+    callback = function()
+        if vim.bo.filetype ~= "markdown" then
+            vim.cmd([[%s/\s\+$//e]])
+        end
+    end,
+})
 
 -- :w or :W to save
 vim.api.nvim_create_user_command("W", "w", { bang = true })
