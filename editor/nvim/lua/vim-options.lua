@@ -34,23 +34,23 @@ vim.opt.backup = false
 vim.opt.autoindent = true
 
 -- Copy relative filepath
-vim.keymap.set('n', '<Leader>p', ':let @+=expand("%")<CR>', { remap = false })
+vim.keymap.set("n", "<Leader>p", ':let @+=expand("%")<CR>', { remap = false })
 
 -- Remap escape
-vim.keymap.set('i', 'jj', '<ESC>')
-vim.keymap.set('v', 'nn', '<ESC>')
+vim.keymap.set("i", "jj", "<ESC>")
+vim.keymap.set("v", "nn", "<ESC>")
 
 -- Clear search highlighting
-vim.keymap.set('n', '<leader>', ':noh<CR>')
+vim.keymap.set("n", "<leader>", ":noh<CR>")
 
 -- Remove trailing whitespace
 vim.api.nvim_create_autocmd("BufWritePre", {
-    pattern = "*",
-    callback = function()
-        if vim.bo.filetype ~= "markdown" then
-            vim.cmd([[%s/\s\+$//e]])
-        end
-    end,
+	pattern = "*",
+	callback = function()
+		if vim.bo.filetype ~= "markdown" then
+			vim.cmd([[%s/\s\+$//e]])
+		end
+	end,
 })
 
 -- :w or :W to save
@@ -60,4 +60,10 @@ vim.api.nvim_create_user_command("W", "w", { bang = true })
 vim.opt.shell = "zsh"
 
 -- remap exiting terminal to escape
-vim.keymap.set('t', '<C-SPACE>', [[<C-\><C-n>]], { noremap = true, silent = true })
+vim.keymap.set("t", "<C-SPACE>", [[<C-\><C-n>]], { noremap = true, silent = true })
+
+vim.keymap.set("n", "K", function()
+	vim.lsp.buf.hover({
+		border = "single",
+	})
+end)
