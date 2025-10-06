@@ -1,8 +1,8 @@
 [color]
 	ui = true
 [user]
-	name = Michael Giver
-	email = mike.giver@gmail.com
+	name = Mike Giver
+	email = mikegiver@navapbc.com
 [alias]
         co = checkout
         c = commit -m

@@ -27,10 +27,17 @@ source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
-eval "$(rbenv init -)"
+eval "$(rbenv init - zsh)"
 
 export PATH="/usr/local/sbin:$PATH"
-export PATH="/usr/local/opt/node@16/bin:$PATH"
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+export PATH="/opt/homebrew/opt/icu4c@77/bin:$PATH"
+export PATH="/opt/homebrew/opt/icu4c@77/sbin:$PATH"
+
+export LDFLAGS="-L/opt/homebrew/opt/icu4c@77/lib"
+export CPPFLAGS="-I/opt/homebrew/opt/icu4c@77/include"
+
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
 
 export EDITOR='nvim'
 
