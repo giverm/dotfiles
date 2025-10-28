@@ -2,5 +2,7 @@
 *.sw?
 .byebug_history
 .ruby-version
+.claude/
+.mcp.json
 storage/
 
