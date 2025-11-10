@@ -38,8 +38,10 @@ export LDFLAGS="-L/opt/homebrew/opt/icu4c@77/lib"
 export CPPFLAGS="-I/opt/homebrew/opt/icu4c@77/include"
 
 export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+export PATH="/opt/homebrew/bin:$PATH"
 
 export EDITOR='nvim'
 
 alias be="bundle exec "
 alias tst="tig status"
+alias gcane="git commit --amend --no-edit"
