@@ -1,8 +1,9 @@
 .DS\_Store
 *.sw?
 .byebug_history
-.ruby-version
 .claude/
 .mcp.json
+.ruby-version
+app_functions/
 storage/
 
