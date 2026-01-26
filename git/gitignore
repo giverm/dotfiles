@@ -1,9 +1,9 @@
-.DS\_Store
 *.sw?
+.DS\_Store
 .byebug_history
 .claude/
 .mcp.json
 .ruby-version
+Claude.local.md
 app_functions/
 storage/
-
