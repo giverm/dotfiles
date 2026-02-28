@@ -30,14 +30,6 @@ source $ZSH/oh-my-zsh.sh
 eval "$(rbenv init - zsh)"
 
 export PATH="/usr/local/sbin:$PATH"
-export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
-export PATH="/opt/homebrew/opt/icu4c@77/bin:$PATH"
-export PATH="/opt/homebrew/opt/icu4c@77/sbin:$PATH"
-
-export LDFLAGS="-L/opt/homebrew/opt/icu4c@77/lib"
-export CPPFLAGS="-I/opt/homebrew/opt/icu4c@77/include"
-
-export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
 export PATH="/opt/homebrew/bin:$PATH"
 
 export EDITOR='nvim'
@@ -46,9 +38,8 @@ alias be="bundle exec "
 alias tst="tig status"
 alias gcane="git commit --amend --no-edit"
 
-. "$HOME/.local/bin/env"
+# Load uv/cargo env if available
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
-# Load project-specific functions for oscer reporting-app
-if [ -f "$HOME/Projects/oscer/reporting-app/app_functions/fresh-start" ]; then
-  source "$HOME/Projects/oscer/reporting-app/app_functions/fresh-start"
-fi
+# Machine-specific config (not committed)
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local

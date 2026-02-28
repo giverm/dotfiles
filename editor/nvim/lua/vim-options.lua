@@ -4,9 +4,6 @@ vim.opt.tabstop = 2
 vim.opt.softtabstop = 2
 vim.opt.shiftwidth = 2
 
--- Use bash for shell commands
-vim.opt.shell = "bash"
-
 -- Enable standar backspacing
 vim.cmd("set backspace=indent,eol,start")
 
@@ -41,7 +38,7 @@ vim.keymap.set("i", "jj", "<ESC>")
 vim.keymap.set("v", "nn", "<ESC>")
 
 -- Clear search highlighting
-vim.keymap.set("n", "<leader>", ":noh<CR>")
+vim.keymap.set("n", "<leader><space>", ":noh<CR>")
 
 -- Remove trailing whitespace
 vim.api.nvim_create_autocmd("BufWritePre", {
