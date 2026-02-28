@@ -1,8 +1,7 @@
 [color]
 	ui = true
-# User identity is set locally per machine:
-# git config --global user.name "Your Name"
-# git config --global user.email "you@example.com"
+[include]
+	path = ~/.gitconfig.local
 [alias]
         co = checkout
         c = commit -m

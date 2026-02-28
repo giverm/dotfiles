@@ -149,6 +149,25 @@ namespace :dotfiles do
     puts "Target: #{target_path}"
 
     setup_symlink(source_path, target_path, 'git configuration')
+
+    # Setup local git identity in ~/.gitconfig.local
+    local_config = File.expand_path('~/.gitconfig.local')
+    if File.exist?(local_config)
+      puts "✓ #{local_config} already exists"
+    else
+      puts "\nSetting up git user identity (stored in ~/.gitconfig.local)..."
+      print 'Git user name: '
+      name = $stdin.gets.chomp
+      print 'Git user email: '
+      email = $stdin.gets.chomp
+
+      if name.empty? || email.empty?
+        puts '⚠ Skipping — name and email are both required'
+      else
+        File.write(local_config, "[user]\n\tname = #{name}\n\temail = #{email}\n")
+        puts "✓ Git identity written to #{local_config}"
+      end
+    end
   end
 
   desc 'Setup gitignore by symlinking to ~/.gitignore'
