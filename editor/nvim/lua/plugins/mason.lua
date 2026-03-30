@@ -17,12 +17,11 @@ return {
 				"lua_ls",
 				"ruby_lsp",
 				"rubocop",
-				"prettierd",
 				"ts_ls",
 			},
 		},
 		dependencies = {
-			"neovim/nvim-lspconfig",
+			"williamboman/mason.nvim",
 		},
 	},
 }
