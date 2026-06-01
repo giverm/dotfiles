@@ -38,7 +38,7 @@ vim.keymap.set("i", "jj", "<ESC>")
 vim.keymap.set("v", "nn", "<ESC>")
 
 -- Clear search highlighting
-vim.keymap.set("n", "<leader><space>", ":noh<CR>")
+vim.keymap.set("n", "<leader><leader>", ":noh<CR>", { silent = true })
 
 -- Remove trailing whitespace
 vim.api.nvim_create_autocmd("BufWritePre", {
