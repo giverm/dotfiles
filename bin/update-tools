@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# Update local toolchains:
+#   - Homebrew: update, upgrade, cleanup
+#   - Neovim plugins via Lazy (headless sync)
+#   - If lazy-lock.json changed and the dotfiles repo is otherwise clean,
+#     auto-commit with "Bump neovim plugins"
+#
+# Each section is independent — a failure in one is reported but does not
+# abort the rest. Exit code is non-zero if any step failed.
+
+set -u
+
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/Projects/dotfiles}"
+NVIM_DIR="$DOTFILES_DIR/editor/nvim"
+LOCK_FILE="$NVIM_DIR/lazy-lock.json"
+
+if [ -t 1 ]; then
+  C_RESET=$'\e[0m'
+  C_BOLD=$'\e[1m'
+  C_DIM=$'\e[2m'
+  C_GREEN=$'\e[32m'
+  C_YELLOW=$'\e[33m'
+  C_RED=$'\e[31m'
+  C_CYAN=$'\e[36m'
+else
+  C_RESET=
+  C_BOLD=
+  C_DIM=
+  C_GREEN=
+  C_YELLOW=
+  C_RED=
+  C_CYAN=
+fi
+
+step() { printf '\n%s%s==> %s%s\n' "$C_BOLD" "$C_CYAN" "$*" "$C_RESET"; }
+ok() { printf '  %s✓%s %s\n' "$C_GREEN" "$C_RESET" "$*"; }
+warn() { printf '  %s!%s %s\n' "$C_YELLOW" "$C_RESET" "$*"; }
+bad() { printf '  %s✗%s %s\n' "$C_RED" "$C_RESET" "$*"; }
+dim() { printf '  %s·%s %s\n' "$C_DIM" "$C_RESET" "$*"; }
+
+FAILURES=0
+
+run_step() {
+  local label="$1"
+  shift
+  if "$@"; then
+    ok "$label"
+  else
+    bad "$label failed"
+    FAILURES=$((FAILURES + 1))
+  fi
+}
+
+step "Homebrew"
+if command -v brew >/dev/null 2>&1; then
+  run_step "brew update" brew update
+  run_step "brew upgrade" brew upgrade
+  run_step "brew cleanup" brew cleanup
+else
+  warn "brew not found — skipping"
+fi
+
+step "Neovim plugins (Lazy)"
+if ! command -v nvim >/dev/null 2>&1; then
+  warn "nvim not found — skipping"
+elif [ ! -d "$NVIM_DIR" ]; then
+  warn "nvim config not found at $NVIM_DIR — skipping"
+else
+  if lazy_out=$(nvim --headless "+Lazy! sync" +qa 2>&1); then
+    [ -n "$lazy_out" ] && printf '%s\n' "$lazy_out" | sed 's/^/    /'
+    ok "Lazy sync"
+  else
+    [ -n "$lazy_out" ] && printf '%s\n' "$lazy_out" | sed 's/^/    /'
+    bad "Lazy sync failed"
+    FAILURES=$((FAILURES + 1))
+  fi
+
+  if [ -f "$LOCK_FILE" ] && git -C "$DOTFILES_DIR" rev-parse --git-dir >/dev/null 2>&1; then
+    if git -C "$DOTFILES_DIR" diff --quiet -- "$LOCK_FILE" 2>/dev/null; then
+      dim "lazy-lock.json unchanged"
+    else
+      changed=$(git -C "$DOTFILES_DIR" status --porcelain | awk '{print $2}')
+      lock_rel="${LOCK_FILE#"$DOTFILES_DIR"/}"
+
+      if [ "$changed" != "$lock_rel" ]; then
+        warn "other files modified in dotfiles repo — skipping auto-commit"
+        printf '%s\n' "$changed" | sed 's/^/      /'
+      else
+        if git -C "$DOTFILES_DIR" add "$LOCK_FILE" &&
+          git -C "$DOTFILES_DIR" commit -m "Bump neovim plugins" >/dev/null; then
+          ok "committed lazy-lock.json bump"
+        else
+          bad "auto-commit failed"
+          FAILURES=$((FAILURES + 1))
+        fi
+      fi
+    fi
+  fi
+fi
+
+printf '\n%s%sSummary%s\n' "$C_BOLD" "$C_CYAN" "$C_RESET"
+if [ "$FAILURES" -eq 0 ]; then
+  ok "all updates completed"
+  exit 0
+else
+  bad "$FAILURES step(s) failed"
+  exit 1
+fi

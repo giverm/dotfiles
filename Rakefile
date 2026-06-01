@@ -182,6 +182,37 @@ namespace :dotfiles do
     setup_symlink(source_path, target_path, 'global gitignore')
   end
 
+  desc 'Setup bin/ scripts by symlinking each into ~/.local/bin'
+  task :setup_scripts do
+    source_dir = File.expand_path('bin', __dir__)
+    target_dir = File.expand_path('~/.local/bin')
+
+    puts 'Setting up bin scripts...'
+    puts "Source: #{source_dir}"
+    puts "Target: #{target_dir}"
+
+    unless Dir.exist?(source_dir)
+      puts "✗ Source directory not found: #{source_dir}"
+      next
+    end
+
+    unless Dir.exist?(target_dir)
+      puts "Creating #{target_dir}..."
+      FileUtils.mkdir_p(target_dir)
+    end
+
+    scripts = Dir.children(source_dir).map { |n| File.join(source_dir, n) }.select { |p| File.file?(p) }
+    if scripts.empty?
+      puts '⚠ No scripts found in bin/'
+      next
+    end
+
+    scripts.each do |source_path|
+      target_path = File.join(target_dir, File.basename(source_path))
+      setup_symlink(source_path, target_path, "script #{File.basename(source_path)}")
+    end
+  end
+
   desc 'Remove zsh symlink'
   task :remove_zsh do
     target_path = File.expand_path('~/.zshrc')
@@ -198,6 +229,22 @@ namespace :dotfiles do
   task :remove_gitignore do
     target_path = File.expand_path('~/.gitignore')
     remove_symlink(target_path, 'global gitignore')
+  end
+
+  desc 'Remove bin/ script symlinks from ~/.local/bin'
+  task :remove_scripts do
+    source_dir = File.expand_path('bin', __dir__)
+    target_dir = File.expand_path('~/.local/bin')
+
+    unless Dir.exist?(source_dir)
+      puts "✗ Source directory not found: #{source_dir}"
+      next
+    end
+
+    Dir.children(source_dir).each do |name|
+      target_path = File.join(target_dir, name)
+      remove_symlink(target_path, "script #{name}")
+    end
   end
 
   desc 'Check zsh configuration status'
@@ -221,18 +268,46 @@ namespace :dotfiles do
     check_configuration_status('Global gitignore', source_path, target_path)
   end
 
+  desc 'Check bin/ script symlink status'
+  task :check_scripts do
+    source_dir = File.expand_path('bin', __dir__)
+    target_dir = File.expand_path('~/.local/bin')
+
+    puts 'Scripts Configuration Status:'
+    puts "Source: #{source_dir}"
+    puts "Target: #{target_dir}"
+
+    unless Dir.exist?(source_dir)
+      puts '✗ Source directory missing'
+      puts
+      next
+    end
+
+    scripts = Dir.children(source_dir).map { |n| File.join(source_dir, n) }.select { |p| File.file?(p) }
+    if scripts.empty?
+      puts '⚠ No scripts found in bin/'
+      puts
+      next
+    end
+
+    scripts.each do |source_path|
+      target_path = File.join(target_dir, File.basename(source_path))
+      check_configuration_status("Script #{File.basename(source_path)}", source_path, target_path)
+    end
+  end
+
   desc 'Check all dotfiles status'
-  task check_all: [:check_nvim, :check_zsh, :check_git, :check_gitignore] do
+  task check_all: [:check_nvim, :check_zsh, :check_git, :check_gitignore, :check_scripts] do
     puts '\n✓ Status check complete!'
   end
 
   desc 'Remove all dotfile symlinks'
-  task remove_all: [:remove_nvim, :remove_zsh, :remove_git, :remove_gitignore] do
+  task remove_all: [:remove_nvim, :remove_zsh, :remove_git, :remove_gitignore, :remove_scripts] do
     puts '\n✓ All dotfile symlinks removed!'
   end
 
   desc 'Setup all dotfiles'
-  task setup_all: [:setup_nvim, :setup_zsh, :setup_git, :setup_gitignore] do
+  task setup_all: [:setup_nvim, :setup_zsh, :setup_git, :setup_gitignore, :setup_scripts] do
     puts '\n✓ All dotfiles setup complete!'
   end
 end
@@ -246,6 +321,7 @@ task :default do
   puts '    rake dotfiles:setup_zsh        - Setup zsh configuration'
   puts '    rake dotfiles:setup_git        - Setup git configuration'
   puts '    rake dotfiles:setup_gitignore  - Setup global gitignore'
+  puts '    rake dotfiles:setup_scripts    - Symlink bin/ scripts into ~/.local/bin'
   puts ''
   puts '  Remove tasks:'
   puts '    rake dotfiles:remove_all       - Remove all dotfile symlinks'
@@ -253,6 +329,7 @@ task :default do
   puts '    rake dotfiles:remove_zsh       - Remove zsh symlink'
   puts '    rake dotfiles:remove_git       - Remove git symlink'
   puts '    rake dotfiles:remove_gitignore - Remove gitignore symlink'
+  puts '    rake dotfiles:remove_scripts   - Remove bin/ script symlinks'
   puts ''
   puts '  Check tasks:'
   puts '    rake dotfiles:check_all        - Check all dotfiles status'
@@ -260,4 +337,5 @@ task :default do
   puts '    rake dotfiles:check_zsh        - Check zsh status'
   puts '    rake dotfiles:check_git        - Check git status'
   puts '    rake dotfiles:check_gitignore  - Check gitignore status'
+  puts '    rake dotfiles:check_scripts    - Check bin/ script symlink status'
 end

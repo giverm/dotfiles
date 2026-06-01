@@ -1,0 +1,151 @@
+#!/usr/bin/env bash
+# Pull latest for every git repo in ~/Projects.
+#
+# Per repo:
+#   - fetch --all --prune
+#   - fast-forward the default branch (main/master) via refspec, even when not checked out
+#   - on the current branch: git pull --rebase --autostash (preserves in-progress work)
+#
+# Repos with no `origin` remote, detached HEAD, or no upstream on the current branch
+# are reported and left untouched. A non-zero exit code means at least one repo failed.
+
+set -u
+
+PROJECTS_DIR="${PROJECTS_DIR:-$HOME/Projects}"
+
+if [ -t 1 ]; then
+  C_RESET=$'\e[0m'
+  C_BOLD=$'\e[1m'
+  C_DIM=$'\e[2m'
+  C_GREEN=$'\e[32m'
+  C_YELLOW=$'\e[33m'
+  C_RED=$'\e[31m'
+  C_CYAN=$'\e[36m'
+else
+  C_RESET=
+  C_BOLD=
+  C_DIM=
+  C_GREEN=
+  C_YELLOW=
+  C_RED=
+  C_CYAN=
+fi
+
+ok() { printf '  %s✓%s %s\n' "$C_GREEN" "$C_RESET" "$*"; }
+warn() { printf '  %s!%s %s\n' "$C_YELLOW" "$C_RESET" "$*"; }
+bad() { printf '  %s✗%s %s\n' "$C_RED" "$C_RESET" "$*"; }
+dim() { printf '  %s·%s %s\n' "$C_DIM" "$C_RESET" "$*"; }
+
+declare -a UPDATED=() SKIPPED=() FAILED=()
+
+default_branch_of() {
+  local repo="$1" ref
+  ref=$(git -C "$repo" symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null) || ref=
+  if [ -z "$ref" ]; then
+    git -C "$repo" remote set-head origin --auto >/dev/null 2>&1 || true
+    ref=$(git -C "$repo" symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null) || ref=
+  fi
+  if [ -n "$ref" ]; then
+    printf '%s' "${ref##refs/remotes/origin/}"
+    return 0
+  fi
+  local b
+  for b in main master; do
+    if git -C "$repo" show-ref --verify --quiet "refs/remotes/origin/$b"; then
+      printf '%s' "$b"
+      return 0
+    fi
+  done
+  return 1
+}
+
+process_repo() {
+  local repo="$1"
+  local name
+  name=$(basename "$repo")
+
+  printf '\n%s%s%s\n' "$C_BOLD$C_CYAN" "$name" "$C_RESET"
+
+  if ! git -C "$repo" remote get-url origin >/dev/null 2>&1; then
+    warn "no 'origin' remote — skipping"
+    SKIPPED+=("$name (no origin)")
+    return
+  fi
+
+  if ! git -C "$repo" fetch --all --prune --quiet 2>/dev/null; then
+    bad "fetch failed"
+    FAILED+=("$name (fetch)")
+    return
+  fi
+  dim "fetched"
+
+  local default current
+  default=$(default_branch_of "$repo") || default=
+  current=$(git -C "$repo" symbolic-ref --quiet --short HEAD 2>/dev/null) || current=
+
+  if [ -z "$current" ]; then
+    warn "detached HEAD — leaving as-is"
+    SKIPPED+=("$name (detached HEAD)")
+    return
+  fi
+
+  if [ -n "$default" ] && [ "$default" != "$current" ]; then
+    if git -C "$repo" fetch origin "$default:$default" >/dev/null 2>&1; then
+      ok "fast-forwarded $default"
+    else
+      warn "$default could not fast-forward (diverged from origin/$default)"
+    fi
+  fi
+
+  if ! git -C "$repo" rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
+    if [ -n "$default" ] && [ "$default" != "$current" ]; then
+      dim "$current has no upstream — left alone (default branch was updated)"
+      UPDATED+=("$name (default only)")
+    else
+      warn "$current has no upstream and no default to fall back on"
+      SKIPPED+=("$name (no upstream)")
+    fi
+    return
+  fi
+
+  local pull_out
+  if pull_out=$(git -C "$repo" pull --rebase --autostash 2>&1); then
+    if printf '%s' "$pull_out" | grep -qiE 'up to date|up-to-date'; then
+      ok "$current already up to date"
+    else
+      ok "$current updated"
+    fi
+    UPDATED+=("$name")
+  else
+    bad "$current: pull --rebase failed"
+    printf '%s\n' "$pull_out" | sed 's/^/      /'
+    FAILED+=("$name ($current pull)")
+  fi
+}
+
+if [ ! -d "$PROJECTS_DIR" ]; then
+  printf '%sError:%s %s does not exist\n' "$C_RED" "$C_RESET" "$PROJECTS_DIR" >&2
+  exit 1
+fi
+
+shopt -s nullglob
+for entry in "$PROJECTS_DIR"/*/; do
+  repo="${entry%/}"
+  [ -d "$repo/.git" ] || [ -f "$repo/.git" ] || continue
+  process_repo "$repo"
+done
+
+printf '\n%s%sSummary%s\n' "$C_BOLD" "$C_CYAN" "$C_RESET"
+printf '  updated: %d\n' "${#UPDATED[@]}"
+printf '  skipped: %d\n' "${#SKIPPED[@]}"
+printf '  failed:  %d\n' "${#FAILED[@]}"
+
+if [ "${#SKIPPED[@]}" -gt 0 ]; then
+  printf '\n%sSkipped:%s\n' "$C_YELLOW" "$C_RESET"
+  printf '  - %s\n' "${SKIPPED[@]}"
+fi
+if [ "${#FAILED[@]}" -gt 0 ]; then
+  printf '\n%sFailed:%s\n' "$C_RED" "$C_RESET"
+  printf '  - %s\n' "${FAILED[@]}"
+  exit 1
+fi
