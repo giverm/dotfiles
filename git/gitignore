@@ -3,6 +3,7 @@
 .byebug_history
 .claude/
 .mcp.json
+.rebar/
 .ruby-version
 Claude.local.md
 app_functions/
