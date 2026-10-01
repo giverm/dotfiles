@@ -13,6 +13,15 @@ vim.opt.number = true
 -- Turn off wrapping
 vim.opt.wrap = false
 
+-- Wrap markdown at word boundaries
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "markdown",
+	callback = function()
+		vim.opt_local.wrap = true
+		vim.opt_local.linebreak = true
+	end,
+})
+
 -- Use system clipboard
 vim.cmd("set clipboard+=unnamedplus")
 
