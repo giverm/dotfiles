@@ -68,6 +68,9 @@ vim.opt.shell = "zsh"
 -- remap exiting terminal to escape
 vim.keymap.set("t", "<C-SPACE>", [[<C-\><C-n>]], { noremap = true, silent = true })
 
+-- Open a terminal in a new vertical split
+vim.keymap.set("n", "<leader>v", "<cmd>vsplit | terminal<CR>i", { silent = true })
+
 vim.keymap.set("n", "K", function()
 	vim.lsp.buf.hover({
 		border = "single",
